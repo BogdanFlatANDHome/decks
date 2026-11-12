@@ -267,5 +267,62 @@
   }
 })()
 </script>
-  </body>
+  
+<!-- deck-nav: заметные стрелки переключения слайдов (добавлено для сайта) -->
+<style id="deck-nav-css">
+  #deck-nav { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 9000;
+    display: flex; align-items: center; gap: 14px; padding: 6px; border-radius: 999px;
+    background: rgba(29, 28, 33, .78); box-shadow: 0 6px 24px rgba(0,0,0,.25);
+    font: 600 15px/1 'IBM Plex Sans', 'Segoe UI', Arial, sans-serif; color: #fff; user-select: none; }
+  #deck-nav button { width: 52px; height: 52px; border: 0; border-radius: 50%; cursor: pointer;
+    background: #EF4B5C; color: #fff; display: grid; place-items: center; padding: 0;
+    transition: transform .12s, opacity .2s, background .2s; }
+  #deck-nav button:hover { background: #d93a4b; transform: scale(1.06); }
+  #deck-nav button:active { transform: scale(.95); }
+  #deck-nav button:disabled { opacity: .3; cursor: default; transform: none; background: #EF4B5C; }
+  #deck-nav button svg { width: 26px; height: 26px; }
+  #deck-nav .deck-nav-count { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums; }
+  #deck-nav .deck-nav-pdf { display: flex; align-items: center; gap: 6px; height: 52px; padding: 0 18px 0 14px;
+    border-radius: 999px; background: #fff; color: #1D1C21; text-decoration: none; margin-left: 4px; transition: background .2s; }
+  #deck-nav .deck-nav-pdf:hover { background: #f1eeea; }
+  #deck-nav .deck-nav-pdf svg { width: 20px; height: 20px; }
+  @media (max-width: 600px) { #deck-nav { bottom: 10px; gap: 8px; } #deck-nav button { width: 46px; height: 46px; }
+    #deck-nav .deck-nav-pdf { height: 46px; padding: 0 14px 0 10px; } }
+  @media print { #deck-nav { display: none !important; } }
+</style>
+<script id="deck-nav-js" data-pdf="wolfchat.pdf">
+(function () {
+  var pdf = document.currentScript && document.currentScript.dataset.pdf
+  var arrow = function (d) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg>'
+  }
+  function init() {
+    var ctr = document.querySelector('.reveal .controls')
+    if (!ctr) return setTimeout(init, 200)
+    var L = ctr.querySelector('.navigate-left'), R = ctr.querySelector('.navigate-right')
+    var nav = document.createElement('div')
+    nav.id = 'deck-nav'
+    nav.innerHTML = '<button type="button" aria-label="Предыдущий слайд" data-dir="prev">' + arrow('M15 5l-7 7 7 7') + '</button>' +
+      '<span class="deck-nav-count"></span>' +
+      '<button type="button" aria-label="Следующий слайд" data-dir="next">' + arrow('M9 5l7 7-7 7') + '</button>' +
+      (pdf ? '<a class="deck-nav-pdf" href="' + pdf + '" download>' + arrow('M12 4v11M7 10l5 5 5-5M5 20h14') + 'PDF</a>' : '')
+    document.body.appendChild(nav)
+    var a = nav.querySelector('.deck-nav-pdf')
+    if (a) a.addEventListener('click', function (e) { e.stopPropagation() })
+    var bp = nav.querySelector('[data-dir=prev]'), bn = nav.querySelector('[data-dir=next]'), cnt = nav.querySelector('.deck-nav-count')
+    bp.onclick = function (e) { e.stopPropagation(); L.click() }
+    bn.onclick = function (e) { e.stopPropagation(); R.click() }
+    var sync = function () {
+      bp.disabled = L.disabled
+      bn.disabled = R.disabled
+      var n = document.querySelector('.reveal .slide-number')
+      cnt.textContent = n ? n.textContent.replace(/\s+/g, ' ').trim() : ''
+    }
+    new MutationObserver(sync).observe(document.querySelector('.reveal'), { attributes: true, childList: true, subtree: true, characterData: true })
+    sync()
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init()
+})()
+</script>
+</body>
 </html>
