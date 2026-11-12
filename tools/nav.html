@@ -16,6 +16,10 @@
     border-radius: 999px; background: #fff; color: #1D1C21; text-decoration: none; margin-left: 2px; }
   #deck-nav .deck-nav-pdf:hover { background: #f1eeea; }
   #deck-nav .deck-nav-pdf svg { width: 12px; height: 12px; }
+  #deck-nav .deck-nav-home { display: flex; align-items: center; gap: 4px; height: 26px; padding: 0 10px 0 8px;
+    border-radius: 999px; color: #fff; text-decoration: none; margin-right: 2px; transition: background .2s; }
+  #deck-nav .deck-nav-home:hover { background: rgba(255,255,255,.14); }
+  #deck-nav .deck-nav-home svg { width: 12px; height: 12px; }
   @media print { #deck-nav { display: none !important; } }
 </style>
 <script id="deck-nav-js" data-pdf="__PDF__">
@@ -35,7 +39,8 @@
     nav.id = 'deck-nav'
     var a = accent()
     if (a) nav.style.setProperty('--deck-accent', a)
-    nav.innerHTML = '<button type="button" aria-label="Предыдущий слайд" data-dir="prev">' + icon('M15 5l-7 7 7 7') + '</button>' +
+    nav.innerHTML = '<a class="deck-nav-home" href="./">' + icon('M19 12H5M11 6l-6 6 6 6') + 'Все продукты</a>' +
+      '<button type="button" aria-label="Предыдущий слайд" data-dir="prev">' + icon('M15 5l-7 7 7 7') + '</button>' +
       '<span class="deck-nav-count"></span>' +
       '<button type="button" aria-label="Следующий слайд" data-dir="next">' + icon('M9 5l7 7-7 7') + '</button>' +
       (pdf ? '<a class="deck-nav-pdf" href="' + pdf + '" download>' + icon('M12 4v11M7 10l5 5 5-5M5 20h14') + 'PDF</a>' : '')
@@ -43,8 +48,7 @@
     var bp = nav.querySelector('[data-dir=prev]'), bn = nav.querySelector('[data-dir=next]'), cnt = nav.querySelector('.deck-nav-count')
     bp.onclick = function (e) { e.stopPropagation(); L.click() }
     bn.onclick = function (e) { e.stopPropagation(); R.click() }
-    var pl = nav.querySelector('.deck-nav-pdf')
-    if (pl) pl.addEventListener('click', function (e) { e.stopPropagation() })
+    nav.querySelectorAll('a').forEach(function (l) { l.addEventListener('click', function (e) { e.stopPropagation() }) })
     var sync = function () {
       bp.disabled = L.disabled
       bn.disabled = R.disabled

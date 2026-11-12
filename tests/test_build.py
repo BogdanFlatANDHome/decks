@@ -32,6 +32,12 @@ def test_page_gets_nav_pdf_and_is_readonly():
         assert doc(html)["readonly"] is True, "на сайте презентация только для просмотра"
 
 
+def test_page_has_back_button_to_all_products():
+    with tempfile.TemporaryDirectory() as t:
+        html = build("wolfchat", SRC, Path(t))
+        assert 'class="deck-nav-home" href="./"' in html, "в панели есть кнопка назад к списку презентаций"
+
+
 def test_rebuild_from_published_page_does_not_duplicate_nav():
     with tempfile.TemporaryDirectory() as t:
         first = build("wolfchat", SRC, Path(t))
