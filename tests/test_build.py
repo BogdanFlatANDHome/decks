@@ -38,6 +38,30 @@ def test_page_has_back_button_to_all_products():
         assert 'class="deck-nav-home" href="./"' in html, "в панели есть кнопка назад к списку презентаций"
 
 
+def test_index_lists_every_deck_from_src():
+    with tempfile.TemporaryDirectory() as t:
+        out = Path(t)
+        (out / "src").mkdir()
+        for n in ("wolfchat", "dubli-gostey"):
+            (out / "src" / f"{n}.bento.html").write_text(
+                (ROOT / "src" / f"{n}.bento.html").read_text(encoding="utf-8"), encoding="utf-8")
+        # новая презентация: своё название, подпись и акцент
+        new = (ROOT / "src" / "wolfchat.bento.html").read_text(encoding="utf-8")
+        d = doc(new)
+        d["title"], d["meta"]["subject"], d["theme"]["accent"] = "Новый продукт — что-то", "Подпись нового", "#123456"
+        m = re.search(r'(<script type="application/bento\+json" id="bento-doc">)(.*?)(</script>)', new, re.S)
+        new = new[:m.start(2)] + json.dumps(d, ensure_ascii=False) + new[m.end(2):]
+        (out / "src" / "novyy.bento.html").write_text(new, encoding="utf-8")
+
+        subprocess.run([sys.executable, "-I", str(ROOT / "tools" / "index.py"), str(out)], check=True)
+        html = (out / "index.html").read_text(encoding="utf-8")
+        for n in ("wolfchat", "dubli-gostey", "novyy"):
+            assert f'href="{n}.html"' in html and f'href="{n}.pdf"' in html and f'src="thumbs/{n}.jpg"' in html, n
+        assert ">Новый продукт<" in html, "название — часть title до тире"
+        assert "Подпись нового" in html and "--accent: #123456" in html
+        assert ">WolfChat<" in html and "WhatsApp, Telegram и MAX в Битрикс24" in html
+
+
 def test_rebuild_from_published_page_does_not_duplicate_nav():
     with tempfile.TemporaryDirectory() as t:
         first = build("wolfchat", SRC, Path(t))
