@@ -88,22 +88,30 @@ def test_last_slide_links_to_all_products():
         assert links and "Другие продукты Wolf Consult" in links[0], name
 
 
-def test_bot_concept_ends_future_updates_in_both_decks():
-    titles = (
-        "Свой бот отеля — ваш бренд в кармане гостя",
-        "Маркетинг, который возвращает гостей",
-        "Свяжемся с гостем в 100 % случаев",
-    )
+def test_guest_journey_precedes_owner_tools_and_pricing_in_both_decks():
+    future = [
+        ("guest-journey", "Скоро: весь путь гостя — в WolfChat"),
+        ("bot-cascade", "Свяжемся с гостем в 100 % случаев"),
+        ("night-desk", "Ресепшен, который не спит"),
+        ("family", "Продаёт номера, пока вы спите"),
+        ("crm-booking", "Бронь не теряется"),
+        ("bot-brand", "Свой бот отеля — ваш бренд в кармане гостя"),
+        ("bot-marketing", "Маркетинг, который возвращает гостей"),
+        ("quality", "Качество под контролем"),
+        ("mcp-setup", "Создан для людей и для ИИ-агентов"),
+        ("mcp-analytics", "Ваш ИИ — ваш аналитик"),
+    ]
     with tempfile.TemporaryDirectory() as t:
-        for suffix, next_id in (("preimushchestva", "pricing"), ("polnaya", "cta")):
+        for suffix in ("preimushchestva", "polnaya"):
             name = f"wolfchat-{suffix}"
             slides = doc(build(name, ROOT / "src" / f"{name}.bento.html", Path(t)))["slides"]
-            after_mcp = next(i + 1 for i, slide in enumerate(slides) if slide["id"] == "mcp-analytics")
-            for slide, title in zip(slides[after_mcp:after_mcp + 3], titles, strict=True):
-                copy = [re.sub(r"<[^>]+>", " ", e.get("html", "")) for e in slide["elements"]]
-                assert title in copy, f"{name}: нет слайда «{title}» на ожидаемой позиции"
-                assert copy.count("Скоро") == 1, title
-            assert slides[after_mcp + 3]["id"] == next_id, name
+            titles = [next(re.sub(r"<br\s*/?>", " ", e["html"]) for e in s["elements"] if e["id"] == "title")
+                      for s in slides if any(e["id"] == "title" for e in s["elements"])]
+            start = titles.index("Всё под рукой") + 1
+            assert titles[start:start + len(future)] == [title for _, title in future], name
+            assert titles[-2:] == ["Цена — за один номер в месяц", "Покажем WolfChat на вашем Битрикс24"], name
+            badged = [s["id"] for s in slides for e in s["elements"] if e.get("html") == "Скоро"]
+            assert badged == [id for id, _ in future], name
 
 
 if __name__ == "__main__":
