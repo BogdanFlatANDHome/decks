@@ -18,7 +18,7 @@ print(sum(1 for x in d["slides"] if not x.get("hidden")))' "$name.html")
 
 python3 -I -m http.server "$port" --bind 127.0.0.1 --directory "$root" >/dev/null 2>&1 &
 srv=$!
-pw() { playwright-cli -s=decks-shots "$@" >/dev/null 2>&1; }
+pw() { playwright-cli -s=decks-shots "$@" >"$work/playwright.log" 2>&1 || { cat "$work/playwright.log" >&2; return 1; }; }
 cleanup() { pw close || true; kill "$srv" 2>/dev/null || true; rm -rf "$work"; }
 trap cleanup EXIT
 sleep 1
