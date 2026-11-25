@@ -88,6 +88,24 @@ def test_last_slide_links_to_all_products():
         assert links and "Другие продукты Wolf Consult" in links[0], name
 
 
+def test_bot_concept_ends_future_updates_in_both_decks():
+    titles = (
+        "Свой бот отеля — ваш бренд в кармане гостя",
+        "Маркетинг, который возвращает гостей",
+        "Свяжемся с гостем в 100 % случаев",
+    )
+    with tempfile.TemporaryDirectory() as t:
+        for suffix, next_id in (("preimushchestva", "pricing"), ("polnaya", "cta")):
+            name = f"wolfchat-{suffix}"
+            slides = doc(build(name, ROOT / "src" / f"{name}.bento.html", Path(t)))["slides"]
+            after_mcp = next(i + 1 for i, slide in enumerate(slides) if slide["id"] == "mcp-analytics")
+            for slide, title in zip(slides[after_mcp:after_mcp + 3], titles, strict=True):
+                copy = [re.sub(r"<[^>]+>", " ", e.get("html", "")) for e in slide["elements"]]
+                assert title in copy, f"{name}: нет слайда «{title}» на ожидаемой позиции"
+                assert copy.count("Скоро") == 1, title
+            assert slides[after_mcp + 3]["id"] == next_id, name
+
+
 if __name__ == "__main__":
     fails = 0
     for n, f in list(globals().items()):
